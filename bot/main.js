@@ -39,18 +39,31 @@ const runBot = (bot) => {
       );
     });
 
-    bot.onText(/Show me random joke/i, async (message) => {
+    bot.onText(/Show me a random joke/i, async (message) => {
       const { message_id } = message;
       const { text } = message;
       const {
         chat: { id },
       } = message;
-      // await bot.deleteMessage(id, message_id);
-      await bot.sendMessage(id, 'more', {
+      await bot.deleteMessage(id, message_id);
+      const lastRecord = await prisma.jokes.findMany({
+        take: 1,
+        orderBy: {
+          id: 'desc',
+        }
+      })
+      // Generate random id
+      const randomID = generateRandom(21, lastRecord[0].id);
+      const joke = await prisma.jokes.findUnique({
+        where: {
+          id: randomID
+        },
+      })
+      await bot.sendPhoto(id, joke.image_url, {
         parse_mode: 'HTML',
         reply_markup: {
           inline_keyboard: InlineKeyboard.secondMenu,
-        },
+        }
       });
     });
 
@@ -74,28 +87,20 @@ const runBot = (bot) => {
             }
           })
           // Generate random id
-          const randomID = generateRandom(21, lastRecord.id);
+          const randomID = generateRandom(21, lastRecord[0].id);
           const joke = await prisma.jokes.findUnique({
             where: {
               id: randomID
             },
           })
           await bot.sendPhoto(chat.id, joke.image_url, {
-            reply_markup: JSON.stringify({
-              inline_keyboard: [
-                [
-                  {
-                    text: `🎲 Shom me random joke 🎲`,
-                    callback_data: 'random',
-                  },
-                ],
-              ],
-            }),
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: InlineKeyboard.secondMenu,
+            }
           });
           break;
         default:
-        //await bot.deleteMessage(chat.id, message_id);
-        //await bot.sendMessage(chat.id, `Command has not been recognized.`, { reply_markup: InlineKeyboard.unlock })
       }
       // Answer on each incoming callback
       await bot.answerCallbackQuery(callbackQuery.id, {});
@@ -103,10 +108,6 @@ const runBot = (bot) => {
   } catch (error) {
     console.log(error);
   }
-};
-
-const stateCleanup = () => {
-  State.count = 0;
 };
 
 export { runBot };

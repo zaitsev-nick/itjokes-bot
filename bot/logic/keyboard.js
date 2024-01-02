@@ -1,5 +1,5 @@
 const home = [
-  ['Show me random joke']
+  ['Show me a random joke']
 ];
 
 export const Keyboard = {
