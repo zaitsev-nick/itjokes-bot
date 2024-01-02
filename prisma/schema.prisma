@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Jokes {
+  id        Int      @id @default(autoincrement())
+  title     String
+  text      String
+  createdAt DateTime @default(now())
+  format    String
+  image_url String
+  bytes     Int
+  height    Int
+  width     Int
+}
